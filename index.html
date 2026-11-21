@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Search</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;800&display=swap">
+<style>
+:root{--panel:#fffffff0;--ink:#1f1a1c;--dim:#6b6366;--link:#1a4fd6;--line:#00000014;--hot:#ff7a1a;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--panel:#241a20f0;--ink:#f6eef0;--dim:#a99da2;--link:#8fb0ff;--line:#ffffff1c}}
+:root[data-theme="dark"]{--panel:#241a20f0;--ink:#f6eef0;--dim:#a99da2;--link:#8fb0ff;--line:#ffffff1c}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:#1a0b12;font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink)}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+#grain{position:fixed;inset:-20%;z-index:0;pointer-events:none;opacity:.1;animation:gr .5s steps(1) infinite}
+@keyframes gr{0%{transform:translate(0,0)}25%{transform:translate(-4%,3%)}50%{transform:translate(3%,-5%)}75%{transform:translate(-2%,4%)}}
+#vig{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,#0000008c 100%)}
+#track{position:relative;z-index:1;height:800vh}
+#stage{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column;align-items:center;padding:10vh 16px 0}
+#cue{position:absolute;bottom:6vh;left:0;right:0;text-align:center;color:#fff;font-size:.72rem;letter-spacing:.4em;text-transform:uppercase;opacity:.85;transition:opacity .6s;animation:pu 2.2s ease-in-out infinite}
+@keyframes pu{50%{transform:translateY(7px);opacity:.4}}
+#bar{width:min(100%,640px);display:flex;align-items:center;gap:12px;background:var(--panel);border-radius:999px;padding:15px 22px;box-shadow:0 14px 50px #0006;
+  transform:translateY(-30px) scale(.9);opacity:0;pointer-events:none;transition:transform .7s cubic-bezier(.2,1.4,.4,1),opacity .5s}
+#bar.on{transform:none;opacity:1}
+#bar svg{flex:none;width:20px;height:20px;stroke:var(--dim);fill:none;stroke-width:2.2;stroke-linecap:round}
+#q{flex:1;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:1.4em}
+#q::after{content:"";display:inline-block;width:2px;height:1.1em;background:var(--ink);margin-left:2px;vertical-align:-.15em;animation:cr 1s steps(1) infinite}
+@keyframes cr{50%{opacity:0}}
+#res{width:min(100%,640px);margin-top:16px;background:var(--panel);border-radius:22px;padding:6px 22px;box-shadow:0 14px 50px #0005;display:none}
+#res.on{display:block;animation:up .5s}
+@keyframes up{from{opacity:0;transform:translateY(14px)}}
+.sec{padding:14px 0;border-bottom:1px solid var(--line)}
+.sec:last-child{border:0}
+.fade{opacity:0;transform:translateY(8px);transition:.6s}
+.fade.in{opacity:1;transform:none}
+.meta{font-size:.76rem;color:var(--dim)}
+.url{font-size:.78rem;color:var(--dim);margin-bottom:2px}
+.t{color:var(--link);font-size:1.12rem;font-weight:500}
+.d{font-size:.92rem;line-height:1.55;color:var(--dim);margin-top:4px}
+.dym{font-size:1.02rem}
+.dym a{color:var(--link);font-weight:700;font-style:italic;text-decoration:none;padding:2px 4px;border-radius:5px}
+.dym a.press{background:var(--link);color:#fff;transition:.15s}
+.ans .lab{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.ans .big{font-size:clamp(3rem,15vw,5rem);font-weight:800;line-height:1.05;letter-spacing:-.03em;background:linear-gradient(90deg,#ff7a1a,#ff3d77);-webkit-background-clip:text;background-clip:text;color:transparent;margin:2px 0}
+.ans .who{font-weight:500}
+.paa{font-weight:500;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer;display:flex;justify-content:space-between;gap:10px}
+.paa:last-child{border:0}
+.paa i{font-style:normal;color:var(--dim);transition:.3s}
+.paa.open i{transform:rotate(180deg)}
+.pa{font-size:.92rem;color:var(--dim);line-height:1.5;max-height:0;overflow:hidden;transition:max-height .4s}
+.sk{height:12px;border-radius:6px;margin:12px 0;background:linear-gradient(90deg,var(--line),#ffffff30,var(--line));background-size:200% 100%;animation:sh 1s linear infinite}
+@keyframes sh{to{background-position:-200% 0}}
+#fin{position:absolute;inset:0;display:none;opacity:0;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:#1a0b12ee;z-index:3}
+#fin.on{display:flex}
+#fin h1{margin:0;color:#fff;font-size:clamp(2.6rem,12vw,6rem);line-height:1;letter-spacing:-.04em;font-weight:800}
+#fin h1 span{background:linear-gradient(90deg,#ffb347,#ff3d77);-webkit-background-clip:text;background-clip:text;color:transparent}
+#fin p{color:#ffffffcc;max-width:30em;line-height:1.7;margin:18px 0 0}
+#fin .sig{color:#ffb347;font-weight:700;margin-top:22px}
+#fin button{margin-top:34px;font:inherit;font-size:.78rem;letter-spacing:.25em;text-transform:uppercase;color:#fff;background:none;border:1px solid #fff9;border-radius:999px;padding:14px 28px;cursor:pointer}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<div id="grain"></div>
+<div id="vig"></div>
+<div id="track">
+  <div id="stage">
+    <div id="bar"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg><div id="q"></div></div>
+    <div id="res"></div>
+    <div id="cue">scroll</div>
+    <div id="fin">
+      <h1>Happy birthday,<br><span id="fn"></span>.</h1>
+      <p id="fp"></p>
+      <div class="sig" id="fs"></div>
+      <button id="again">Replay</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ✏️ EDIT THESE ✏️ */
+var C={
+  first:"Sofia", nick:"Mango", from:"Toront",
+  final:"This whole website exists because of one fruit joke. Worth it. I hope today is full of cake and zero responsibilities."
+};
+function $(i){return document.getElementById(i)}
+var NAME=C.first+" "+C.nick, nl=NAME.toLowerCase();
+var Q1="what is a mango?", Q2="when is "+nl+"’s bday";
+var TODAY="Sunday, November 22";
+$("fn").textContent=C.first;$("fp").textContent=C.final;$("fs").textContent="From "+C.from;
+
+/* ---------- background that plays like video (cheap version) ---------- */
+var cv=$("bg"),x=cv.getContext("2d"),W,H,Q=.5,t=0,base;
+function size(){W=innerWidth;H=innerHeight;cv.width=Math.round(W*Q);cv.height=Math.round(H*Q);x.setTransform(Q,0,0,Q,0,0);
+  base=x.createLinearGradient(0,0,W,H);base.addColorStop(0,"#2b0d1c");base.addColorStop(1,"#4a160f")}
+size();addEventListener("resize",size);
+(function(){var g=document.createElement("canvas");g.width=g.height=96;var c=g.getContext("2d"),id=c.createImageData(96,96);
+  for(var i=0;i<id.data.length;i+=4){var v=Math.random()*255;id.data[i]=id.data[i+1]=id.data[i+2]=v;id.data[i+3]=255}
+  c.putImageData(id,0,0);$("grain").style.backgroundImage="url("+g.toDataURL()+")"})();
+function spr(col){var s=document.createElement("canvas");s.width=s.height=256;var c=s.getContext("2d"),g=c.createRadialGradient(128,128,0,128,128,128);
+  g.addColorStop(0,"rgba("+col+",.4)");g.addColorStop(1,"rgba("+col+",0)");c.fillStyle=g;c.fillRect(0,0,256,256);return s}
+var orbs=[[255,122,26],[255,61,119],[255,200,70],[200,60,160],[255,140,60]].map(function(c){return{im:spr(c),a:Math.random()*6,s:.12+Math.random()*.2,r:.7+Math.random()*.5}});
+var mimg=(function(){var s=document.createElement("canvas");s.width=s.height=128;var c=s.getContext("2d");c.translate(64,64);c.scale(50,50);
+  var g=c.createRadialGradient(-.3,-.3,.1,0,0,1.3);g.addColorStop(0,"#ffe066");g.addColorStop(.5,"#ff9a2e");g.addColorStop(1,"#e8452c");
+  c.fillStyle=g;c.beginPath();c.moveTo(0,-1);c.bezierCurveTo(1.15,-.95,1.25,.6,.1,1);c.bezierCurveTo(-1.05,1.1,-1.25,-.6,0,-1);c.fill();
+  c.fillStyle="#4cae4f";c.beginPath();c.ellipse(.3,-1.05,.45,.16,-.5,0,7);c.fill();return s})();
+var mangos=[];for(var i=0;i<8;i++)mangos.push({x:Math.random(),y:Math.random(),s:18+Math.random()*50,r:Math.random()*6,sp:.00006+Math.random()*.00014,b:Math.random()*6});
+function drawBg(){
+  x.globalCompositeOperation="source-over";x.fillStyle=base;x.fillRect(0,0,W,H);
+  x.globalCompositeOperation="lighter";
+  orbs.forEach(function(o){var cx=W*(.5+.4*Math.sin(t*o.s+o.a)),cy=H*(.5+.4*Math.cos(t*o.s*1.3+o.a*2)),z=Math.max(W,H)*o.r*2;
+    x.drawImage(o.im,cx-z/2,cy-z/2,z,z)});
+  x.globalCompositeOperation="source-over";
+  mangos.forEach(function(m){
+    var px=m.x*W,py=((m.y-t*m.sp*60)%1.2+1.2)%1.2*H-H*.1+Math.sin(t*.8+m.b)*10,k=m.s/50;
+    x.save();x.translate(px,py);x.rotate(m.r+Math.sin(t*.5+m.b)*.2);x.globalAlpha=m.s>45?.3:.55;
+    x.drawImage(mimg,-64*k,-64*k,128*k,128*k);x.restore()});
+  x.globalAlpha=1;
+}
+drawBg();
+
+/* ---------- search that plays as you scroll ---------- */
+var Q3="are we actually only friends?";
+var q=$("q"),res=$("res"),bar=$("bar"),fin=$("fin");
+var qa=[["Is "+C.first+" getting old today?","Legally, one year older. Mentally, unchanged."],
+        ["Should I get "+C.first+" a gift?","You already did. You are looking at it. Please clap."],
+        ["Is it okay to eat all the cake?","Yes. Doctors agree. Mostly."]];
+var paa='<div class="sec fade" id="paa"><div class="meta" style="margin-bottom:4px">People also ask</div>';
+qa.forEach(function(a){paa+='<div class="paa"><span>'+a[0]+'</span><i>⌄</i></div><div class="pa">'+a[1]+'</div>'});
+paa+='</div>';
+res.innerHTML=
+ '<div id="skel" style="display:none"><div class="sec"><div class="sk" style="width:38%"></div><div class="sk"></div><div class="sk" style="width:80%"></div></div></div>'+
+ '<div id="A" style="display:none"><div class="sec meta">About 4,200,000 results (0.41 seconds)</div>'+
+   '<div class="sec dym fade" id="dym">Did you mean: <a id="sug" href="#">'+Q2+'</a></div>'+
+   '<div class="sec"><div class="url">fruit.example › tropical › mango</div><div class="t">Mango: a juicy tropical stone fruit</div>'+
+   '<div class="d">A mango is a sweet fruit. Also, according to several sources, a nickname. Results may be influenced by one specific person. See suggested correction above.</div></div></div>'+
+ '<div id="B" style="display:none"><div class="sec meta">About 1 result (0.00 seconds)</div>'+
+   '<div class="sec ans fade" id="ans"><div class="lab">Birthday</div><div class="big">Today.</div><div class="who">'+NAME+' · '+TODAY+'</div>'+
+   '<div class="meta" style="margin-top:8px">Confidence: extremely high. Source: trust me.</div></div>'+
+   '<div class="sec fade" id="news"><div class="url">news.example › local › birthdays</div><div class="t">Local person gets one year older, remains undefeated</div></div>'+paa+'</div>'+
+ '<div id="Cc" style="display:none"><div class="sec meta">About 0 results (0.00 seconds)</div>'+
+   '<div class="sec ans fade" id="an2"><div class="lab">Answer</div><div class="big">Nope.</div><div class="who">Nobody builds a whole website for just a friend.</div>'+
+   '<div class="meta" style="margin-top:8px">Suggested next step: text '+C.from+' and find out.</div></div></div>';
+document.querySelectorAll(".paa").forEach(function(p){p.onclick=function(){var a=p.nextElementSibling,o=p.classList.toggle("open");a.style.maxHeight=o?"60px":"0"}});
+$("sug").onclick=function(e){e.preventDefault()};
+
+function cl(v){return Math.max(0,Math.min(1,v))}
+function sl(t,a,b,p){return t.slice(0,Math.round(t.length*cl((p-a)/(b-a))))}
+function bk(t,a,b,p){return t.slice(0,Math.round(t.length*(1-cl((p-a)/(b-a)))))}
+function tg(el,on,c){el.classList.toggle(c||"in",!!on)}
+function show(el,on){el.style.display=on?"block":"none"}
+var prevOpen=null;
+function render(p){
+  bar.classList.toggle("on",p>.05);
+  var s;
+  if(p<.09)s="";else if(p<.20)s=sl(Q1,.09,.20,p);else if(p<.33)s=Q1;else if(p<.36)s=bk(Q1,.33,.36,p);
+  else if(p<.44)s=sl(Q2,.36,.44,p);else if(p<.64)s=Q2;else if(p<.67)s=bk(Q2,.64,.67,p);
+  else if(p<.76)s=sl(Q3,.67,.76,p);else s=Q3;
+  if(q.textContent!==s)q.textContent=s;
+  res.classList.toggle("on",p>=.20);
+  show($("skel"),(p>=.20&&p<.23)||(p>=.44&&p<.47)||(p>=.76&&p<.79));
+  show($("A"),p>=.23&&p<.44);show($("B"),p>=.47&&p<.76);show($("Cc"),p>=.79);
+  tg($("dym"),p>=.26);tg($("sug"),p>=.30&&p<.44,"press");
+  tg($("ans"),p>=.49);tg($("news"),p>=.53);tg($("paa"),p>=.56);tg($("an2"),p>=.80);
+  var o=p>=.59;if(o!==prevOpen){prevOpen=o;var f=document.querySelector(".paa");f.classList.toggle("open",o);f.nextElementSibling.style.maxHeight=o?"60px":"0"}
+  var fo=cl((p-.90)/.06);fin.classList.toggle("on",fo>0);fin.style.opacity=fo;
+}
+var tp=0,sp=0;
+function sc(){var m=document.documentElement.scrollHeight-innerHeight;tp=m>0?scrollY/m:0;$("cue").style.opacity=tp>.02?0:.85}
+addEventListener("scroll",sc,{passive:true});sc();
+var fr=0,ls=-1;
+$("again").onclick=function(){scrollTo({top:0,behavior:"smooth"})};
+(function lp(){requestAnimationFrame(lp);fr++;if(fr%2===0){t+=.032;drawBg()}
+  sp+=(tp-sp)*.16;if(Math.abs(tp-sp)<.0004)sp=tp;if(sp!==ls){ls=sp;render(sp)}})();
+</script>
+</body>
+</html>
